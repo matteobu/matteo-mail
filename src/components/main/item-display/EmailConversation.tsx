@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Email } from '../../../utils/constants';
+import { formatDateTimeWithAgo } from '../../../utils/utils';
 
 type Props = {
   email: Email;
@@ -35,8 +36,8 @@ export const EmailConversation = ({ email, onBack, onTrashEmail }: Props) => {
             <div className="text-sm text-gray-600 italic mt-1">to me</div>
           )}
         </div>
-        <div className="text-sm text-gray-500 sm:ml-4 sm:self-center">
-          {msg.time}
+        <div className="text-xs text-gray-500 sm:ml-4 sm:self-center">
+          {formatDateTimeWithAgo(msg.time)}
         </div>
       </div>
     );
@@ -69,27 +70,27 @@ export const EmailConversation = ({ email, onBack, onTrashEmail }: Props) => {
   };
 
   return (
-    <div className="mr-[56px] mb-4 flex grow flex-col rounded-2xl bg-white">
+    <div className="mr-[56px] mb-4 p-2 flex grow flex-col rounded-2xl bg-white">
       {onBack && (
         <div className="mb-4 flex items-center gap-2">
           <button
-            className="w-max rounded bg-gray-200 px-3 py-1 text-sm hover:bg-gray-300"
+            className="w-max px-3 py-1 text-sm rounded-2xl hover:bg-gray-300"
             onClick={() => {
               setSelectedEmailIds(new Set());
               onBack();
             }}>
-            ← Back
+            &lt;
           </button>
 
           {onTrashEmail && (
             <button
               aria-label="Trash email"
-              className="rounded bg-red-100 px-3 py-1 text-sm "
+              className="rounded px-3 py-1 text-sm "
               onClick={() => {
                 onTrashEmail(email.id);
                 onBack();
               }}>
-              🗑️
+              <img src="/icons/icon-trash.png" alt="Trash" />
             </button>
           )}
         </div>

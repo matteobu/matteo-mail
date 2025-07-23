@@ -4,13 +4,14 @@ import { SidebarItem } from './SidebarItem';
 interface SidebarMenuProps {
   currentView: ViewType;
   onViewChange: (view: ViewType) => void;
-  counts: {
-    unreadNotSpam: number;
-    starredUnread: number;
-    spamUnread: number;
-    trashUnread: number;
-  };
+  counts: EmailCounts;
 }
+type EmailCounts = {
+  unreadNotSpam: number;
+  starredUnread: number;
+  spamUnread: number;
+  trashUnread: number;
+};
 
 const SidebarMenu = ({
   currentView,

@@ -24,17 +24,21 @@ export const GenericMailDisplay = ({
       {emails.length === 0 ? (
         <div className="text-gray-500 px-4 py-8">{emptyText}</div>
       ) : (
-        emails.map((email) => (
-          <MailListItem
-            key={email.id}
-            {...email}
-            onClick={() => {
-              onEmailClick?.(email);
-              onReadEmail?.(email.id);
-            }}
-            onToggleStar={onToggleStar}
-          />
-        ))
+        [...emails]
+          .sort(
+            (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()
+          )
+          .map((email) => (
+            <MailListItem
+              key={email.id}
+              {...email}
+              onClick={() => {
+                onEmailClick?.(email);
+                onReadEmail?.(email.id);
+              }}
+              onToggleStar={onToggleStar}
+            />
+          ))
       )}
     </div>
   </div>
