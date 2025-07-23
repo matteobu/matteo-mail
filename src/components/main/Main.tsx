@@ -1,16 +1,40 @@
-import { useState } from 'react';
-
+import { useMemo, useState } from 'react';
 import Header from '../Header';
 import SidebarMenu from './sidebar/SidebarMenu';
-
-import { MOCKED_EMAILS, type EmailsType } from '../../utils/constants';
+import {
+  MOCKED_EMAILS,
+  type Email,
+  type EmailsType,
+} from '../../utils/constants';
 import { GenericMailDisplay } from './item-display/GenericMailDisplay';
+import { EmailConversation } from './item-display/EmailConversation';
 
 export type ViewType = 'inbox' | 'starred' | 'all-mail' | 'spam' | 'trash';
 
 const Main = () => {
   const [currentView, setCurrentView] = useState<ViewType>('inbox');
-  const emails: EmailsType = MOCKED_EMAILS;
+  const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
+  const [emails, setEmails] = useState<EmailsType>(MOCKED_EMAILS);
+
+  const counts = useMemo(() => {
+    return emails.reduce(
+      (acc, email) => {
+        if (email.unread) {
+          if (!email.spam) acc.unreadNotSpam++;
+          if (email.starred) acc.starredUnread++;
+          if (email.spam) acc.spamUnread++;
+          if (email.trash) acc.trashUnread++;
+        }
+        return acc;
+      },
+      {
+        unreadNotSpam: 0,
+        starredUnread: 0,
+        spamUnread: 0,
+        trashUnread: 0,
+      }
+    );
+  }, [emails]);
 
   const filteredEmails = (() => {
     switch (currentView) {
@@ -31,57 +55,60 @@ const Main = () => {
     }
   })();
 
+  const handleEmailClick = (email: Email) => {
+    setSelectedEmail(email);
+  };
+
+  const handleBack = () => {
+    setSelectedEmail(null);
+  };
+
+  const toggleStar = (id: string) => {
+    setEmails((prevEmails) =>
+      prevEmails.map((email) =>
+        email.id === id ? { ...email, starred: !email.starred } : email
+      )
+    );
+  };
+
+  const readEmail = (id: string) => {
+    setEmails((prevEmails) =>
+      prevEmails.map((email) =>
+        email.id === id ? { ...email, unread: !email.unread } : email
+      )
+    );
+  };
+
+  const trashEmail = (id: string) => {
+    console.log('Trashing email with ID:', id);
+    setEmails((prevEmails) =>
+      prevEmails.map((email) =>
+        email.id === id ? { ...email, trash: !email.trash } : email
+      )
+    );
+  };
+
   const renderContent = () => {
-    switch (currentView) {
-      case 'inbox':
-        return (
-          <GenericMailDisplay
-            emails={filteredEmails}
-            title="Inbox"
-            emptyText="Your inbox is empty."
-          />
-        );
-      case 'starred':
-        return (
-          <GenericMailDisplay
-            emails={filteredEmails}
-            title="Starred Emails"
-            emptyText="No starred emails found."
-          />
-        );
-      case 'all-mail':
-        return (
-          <GenericMailDisplay
-            emails={filteredEmails}
-            title="All Mail"
-            emptyText="No emails found."
-          />
-        );
-      case 'spam':
-        return (
-          <GenericMailDisplay
-            emails={filteredEmails}
-            title="Spam"
-            emptyText="No spam emails found."
-          />
-        );
-      case 'trash':
-        return (
-          <GenericMailDisplay
-            emails={filteredEmails}
-            title="Trash"
-            emptyText="No trashed emails found."
-          />
-        );
-      default:
-        return (
-          <GenericMailDisplay
-            emails={filteredEmails}
-            title="Inbox"
-            emptyText="Your inbox is empty."
-          />
-        );
+    if (selectedEmail) {
+      return (
+        <EmailConversation
+          email={selectedEmail}
+          onTrashEmail={trashEmail}
+          onBack={handleBack}
+        />
+      );
     }
+
+    return (
+      <GenericMailDisplay
+        emails={filteredEmails}
+        title={currentView.replace('-', ' ').toUpperCase()}
+        emptyText={`No ${currentView} emails found.`}
+        onEmailClick={handleEmailClick}
+        onReadEmail={readEmail}
+        onToggleStar={toggleStar}
+      />
+    );
   };
 
   return (
@@ -89,8 +116,12 @@ const Main = () => {
       <Header />
       <div className="flex grow">
         <SidebarMenu
+          counts={counts}
           currentView={currentView}
-          onViewChange={setCurrentView}
+          onViewChange={(view) => {
+            setCurrentView(view);
+            setSelectedEmail(null);
+          }}
         />
         {renderContent()}
       </div>

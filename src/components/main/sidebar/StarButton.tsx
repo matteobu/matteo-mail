@@ -1,6 +1,14 @@
 import { useState } from 'react';
 
-export const StarButton = ({ starred }: { starred: boolean }) => {
+export const StarButton = ({
+  id,
+  starred,
+  onToggleStar,
+}: {
+  id: string;
+  starred: boolean;
+  onToggleStar?: (id: string) => void;
+}) => {
   const [isStarred, setIsStarred] = useState(starred);
 
   return (
@@ -8,6 +16,7 @@ export const StarButton = ({ starred }: { starred: boolean }) => {
       onClick={(e) => {
         e.stopPropagation();
         setIsStarred(!isStarred);
+        onToggleStar?.(id); // Pass action to parent
       }}
       className="cursor-pointer rounded p-1 hover:bg-gray-100"
       aria-label={isStarred ? 'Unstar' : 'Star'}>
