@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Email } from '../../../utils/constants';
 import { formatDateTimeWithAgo } from '../../../utils/utils';
+import { StarButton } from '../sidebar/StarButton';
 
 type Props = {
   email: Email;
@@ -36,8 +37,17 @@ export const EmailConversation = ({ email, onBack, onTrashEmail }: Props) => {
             <div className="text-sm text-gray-600 italic mt-1">to me</div>
           )}
         </div>
-        <div className="text-xs text-gray-500 sm:ml-4 sm:self-center">
-          {formatDateTimeWithAgo(msg.time)}
+        <div className="flex items-center text-xs text-gray-500 sm:ml-4 sm:self-center space-x-2">
+          <span>{formatDateTimeWithAgo(msg.time)}</span>
+          <StarButton
+            starred={msg.starred}
+            onToggleStar={() => {
+              if (onTrashEmail) {
+                onTrashEmail(msg.id);
+              }
+            }}
+            id={msg.id}
+          />
         </div>
       </div>
     );
@@ -90,7 +100,10 @@ export const EmailConversation = ({ email, onBack, onTrashEmail }: Props) => {
                 onTrashEmail(email.id);
                 onBack();
               }}>
-              <img src="/icons/icon-trash.png" alt="Trash" />
+              <img
+                src="/icons/icon-trash.png"
+                alt="Trash"
+              />
             </button>
           )}
         </div>

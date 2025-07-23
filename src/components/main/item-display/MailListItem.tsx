@@ -9,6 +9,7 @@ export const MailListItem = ({
   body,
   time,
   unread,
+  countReplies,
   onClick,
   onToggleStar,
 }: {
@@ -20,6 +21,7 @@ export const MailListItem = ({
   body: string;
   time: string;
   unread: boolean;
+  countReplies?: number;
   onClick?: () => void;
   onToggleStar?: (id: string) => void;
 }) => {
@@ -38,7 +40,10 @@ export const MailListItem = ({
         className={`w-[200px] shrink-0 truncate ${
           unread ? 'font-bold' : 'font-normal'
         }`}>
-        {senderName}
+        <div>
+          {senderName}
+          {(countReplies ?? 0) > 0 && ` (${(countReplies ?? 0) + 1})`}
+        </div>
       </div>
       <div className="w-0 flex-1 grow truncate text-sm">
         <span className={`${unread ? 'font-semibold' : 'font-normal'}`}>
