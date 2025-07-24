@@ -42,7 +42,7 @@ export const MailListItem = ({
         }`}>
         <div>
           {senderName}
-          {(countReplies ?? 0) > 0 && ` (${(countReplies ?? 0) + 1})`}
+          {(countReplies ?? 1) > 1 && ` (${countReplies ?? 1})`}
         </div>
       </div>
       <div className="w-0 flex-1 grow truncate text-sm">

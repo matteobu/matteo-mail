@@ -38,7 +38,7 @@ const SidebarMenu = ({
     <SidebarItem
       iconSrc="/icons/icon-all-mail.png"
       label="All Mail"
-      count={counts.unreadNotSpam + counts.starredUnread + counts.spamUnread}
+      count={counts.unreadNotSpam}
       selected={currentView === 'all-mail'}
       onClick={() => onViewChange('all-mail')}
     />

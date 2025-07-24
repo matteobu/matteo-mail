@@ -68,26 +68,67 @@ export function formatDateTimeWithAgo(time: string): string {
   return `${datePart}, ${timePart} ${ago}`;
 }
 
-export function getLatestMessageInThread(email: Email): Email {
-  const messages = [email, ...(email.replies ?? [])];
+export const getEmailThread = (
+  allEmails: EmailsType,
+  email: Email
+): Email[] => {
+  const rootId = email.rootId ?? email.id;
 
-  const latest = messages.reduce((latestSoFar, current) => {
-    return new Date(current.time) > new Date(latestSoFar.time)
-      ? current
-      : latestSoFar;
-  }, messages[0]);
+  const threadEmails = allEmails.filter(
+    (e) => e.id === rootId || e.rootId === rootId
+  );
 
-  return {
-    ...email,
-    body: latest.body,
-    time: latest.time,
-  };
+  return threadEmails.sort(
+    (a, b) => new Date(a.time).getTime() - new Date(b.time).getTime()
+  );
+};
+
+export function countEmailThreadMessages(
+  email: Email,
+  allEmails: EmailsType
+): number {
+  return allEmails.filter((e) => e.rootId === email.id).length;
 }
 
+export type ThreadRoot = Email & {
+  threadStarred: boolean;
+  threadUnread: boolean;
+  emails: EmailsType;
+};
 
-export function countEmailThreadMessages(email: Email): number {
-  if (email.replies && email.replies.length > 0) {
-    return email.replies.length;
+export function groupEmailsToThreads(emails: EmailsType): Email[][] {
+  const threadMap: Record<string, Email[]> = {};
+
+  for (const email of emails) {
+    const rootId = email.rootId ?? email.id;
+
+    if (!threadMap[rootId]) {
+      threadMap[rootId] = [];
+    }
+
+    threadMap[rootId].push(email);
   }
-  return 0;
+
+  return Object.values(threadMap);
+}
+
+export function getLatestMessageInThread(
+  email: Email,
+  allEmails: EmailsType
+): Email {
+  const rootId = email.rootId ?? email.id;
+
+  // Get all emails in the thread: root + its replies
+  const threadEmails = allEmails.filter(
+    (e) => e.id === rootId || e.rootId === rootId
+  );
+
+  if (threadEmails.length === 0) return email; // fallback if nothing is found
+
+  // Find the latest email by comparing dates
+  const latest = threadEmails.reduce((latestSoFar, current) =>
+    new Date(current.time) > new Date(latestSoFar.time) ? current : latestSoFar
+  );
+
+  return latest;
 }

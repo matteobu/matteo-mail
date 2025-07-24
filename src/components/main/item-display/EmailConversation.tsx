@@ -1,16 +1,27 @@
 import { useState } from 'react';
-import type { Email } from '../../../utils/constants';
-import { formatDateTimeWithAgo } from '../../../utils/utils';
+import type { Email, EmailsType } from '../../../utils/constants';
+import { formatDateTimeWithAgo, getEmailThread } from '../../../utils/utils';
 import { StarButton } from '../sidebar/StarButton';
 
 type Props = {
+  emails: EmailsType;
   email: Email;
   onBack?: () => void;
   onTrashEmail?: (id: string) => void;
+  onToggleStar?: (id: string) => void;
+  onSpamToggle?: (id: string) => void;
 };
 
-export const EmailConversation = ({ email, onBack, onTrashEmail }: Props) => {
-  const fullThread = [...(email.replies ?? []), email]; // oldest to newest
+export const EmailConversation = ({
+  emails,
+  email,
+  onBack,
+  onTrashEmail,
+  onToggleStar,
+  onSpamToggle,
+}: Props) => {
+  const fullThread = getEmailThread(emails, email);
+
   const [selectedEmailIds, setSelectedEmailIds] = useState<Set<string>>(
     new Set()
   );
@@ -41,11 +52,7 @@ export const EmailConversation = ({ email, onBack, onTrashEmail }: Props) => {
           <span>{formatDateTimeWithAgo(msg.time)}</span>
           <StarButton
             starred={msg.starred}
-            onToggleStar={() => {
-              if (onTrashEmail) {
-                onTrashEmail(msg.id);
-              }
-            }}
+            onToggleStar={() => onToggleStar?.(msg.id)}
             id={msg.id}
           />
         </div>
@@ -54,7 +61,10 @@ export const EmailConversation = ({ email, onBack, onTrashEmail }: Props) => {
   };
 
   const renderBody = (msg: Email) => {
-    const isDetailed = selectedEmailIds.has(msg.id) || fullThread.length === 1;
+    const isDetailed =
+      selectedEmailIds.has(msg.id) ||
+      fullThread.length === 1 ||
+      msg.id === fullThread[fullThread.length - 1].id;
 
     return (
       <div
@@ -80,9 +90,10 @@ export const EmailConversation = ({ email, onBack, onTrashEmail }: Props) => {
   };
 
   return (
-    <div className="mr-[56px] mb-4 p-2 flex grow flex-col rounded-2xl bg-white">
+    <div className="mr-[56px] p-2 flex grow flex-col rounded-2xl bg-white">
       {onBack && (
         <div className="mb-4 flex items-center gap-2">
+          {/* Back Button */}
           <button
             className="w-max px-3 py-1 text-sm rounded-2xl hover:bg-gray-300"
             onClick={() => {
@@ -92,19 +103,75 @@ export const EmailConversation = ({ email, onBack, onTrashEmail }: Props) => {
             &lt;
           </button>
 
-          {onTrashEmail && (
-            <button
-              aria-label="Trash email"
-              className="rounded px-3 py-1 text-sm "
-              onClick={() => {
-                onTrashEmail(email.id);
-                onBack();
-              }}>
-              <img
-                src="/icons/icon-trash.png"
-                alt="Trash"
-              />
-            </button>
+          {!email.spam && !email.trash && (
+            <>
+              <button
+                aria-label="Mark as spam"
+                className="rounded px-3 py-1 text-sm"
+                onClick={() => {
+                  fullThread.forEach((msg) => onSpamToggle?.(msg.id));
+                  onBack();
+                }}>
+                <img
+                  src="/icons/icon-spam.png"
+                  alt="Spam"
+                />
+              </button>
+
+              <button
+                aria-label="Trash email"
+                className="rounded px-3 py-1 text-sm"
+                onClick={() => {
+                  fullThread.forEach((msg) => onTrashEmail?.(msg.id));
+                  onBack();
+                }}>
+                <img
+                  src="/icons/icon-trash.png"
+                  alt="Trash"
+                />
+              </button>
+            </>
+          )}
+
+          {email.spam && (
+            <>
+              <button
+                aria-label="Not spam"
+                className="rounded px-3 py-1 text-sm hover:bg-gray-200 transition-colors"
+                onClick={() => {
+                  fullThread.forEach((msg) => onSpamToggle?.(msg.id));
+                  onBack();
+                }}>
+                Not Spam
+              </button>
+            </>
+          )}
+
+          {email.trash && (
+            <>
+              <button
+                aria-label="Restore from Trash"
+                className="rounded px-3 py-1 text-sm hover:bg-gray-200 transition-colors"
+                onClick={() => {
+                  fullThread.forEach((msg) => onTrashEmail?.(msg.id));
+                  onBack();
+                }}>
+                Move to Inbox
+              </button>
+
+              <button
+                aria-label="Mark as spam"
+                className="rounded px-3 py-1 text-sm"
+                onClick={() => {
+                  fullThread.forEach((msg) => onSpamToggle?.(msg.id));
+                  onBack();
+                }}>
+                <img
+                  src="/icons/icon-spam.png"
+                  alt="Spam"
+                />
+              </button>
+            </>
           )}
         </div>
       )}
@@ -117,7 +184,6 @@ export const EmailConversation = ({ email, onBack, onTrashEmail }: Props) => {
         <div
           key={msg.id}
           className="mb-6 rounded-lg bg-white p-4 shadow-sm flex gap-4 items-start">
-          {/* Circle with initial */}
           <div
             className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-blue-500 text-white font-semibold"
             aria-label={`Avatar for ${msg.senderName}`}>

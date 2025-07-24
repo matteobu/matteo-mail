@@ -8,6 +8,7 @@ import {
 } from '../../utils/constants';
 import { GenericMailDisplay } from './item-display/GenericMailDisplay';
 import { EmailConversation } from './item-display/EmailConversation';
+import { groupEmailsToThreads } from '../../utils/utils';
 
 export type ViewType = 'inbox' | 'starred' | 'all-mail' | 'spam' | 'trash';
 
@@ -17,14 +18,22 @@ const Main = () => {
   const [emails, setEmails] = useState<EmailsType>(MOCKED_EMAILS);
 
   const counts = useMemo(() => {
-    return emails.reduce(
-      (acc, email) => {
-        if (email.unread) {
-          if (!email.spam) acc.unreadNotSpam++;
-          if (email.starred) acc.starredUnread++;
-          if (email.spam) acc.spamUnread++;
-          if (email.trash) acc.trashUnread++;
+    const threads = groupEmailsToThreads(emails);
+
+    return threads.reduce(
+      (acc, thread) => {
+        // Get the latest email in the thread
+        const latest = thread.reduce((a, b) =>
+          new Date(a.time).getTime() > new Date(b.time).getTime() ? a : b
+        );
+
+        if (latest.unread) {
+          if (!latest.spam) acc.unreadNotSpam++;
+          if (latest.starred) acc.starredUnread++;
+          if (latest.spam) acc.spamUnread++;
+          if (latest.trash) acc.trashUnread++;
         }
+
         return acc;
       },
       {
@@ -38,14 +47,16 @@ const Main = () => {
 
   const filteredEmails = (() => {
     switch (currentView) {
-      case 'inbox':
-        return emails.filter((email) => !email.spam && !email.trash);
-      case 'starred':
-        return emails.filter(
-          (email) => email.starred && !email.spam && !email.trash
-        );
+      case 'inbox': {
+        const inboxEmails = emails.filter((e) => !e.trash && !e.spam);
+        return inboxEmails;
+      }
+      case 'starred': {
+        const starredEmail = emails.filter((e) => e.starred && !e.spam);
+        return starredEmail;
+      }
       case 'all-mail':
-        return emails;
+        return emails.filter((email) => !email.spam);
       case 'spam':
         return emails.filter((email) => email.spam);
       case 'trash':
@@ -65,18 +76,27 @@ const Main = () => {
 
   const toggleStar = (id: string) => {
     setEmails((prevEmails) =>
-      prevEmails.map((email) =>
-        email.id === id ? { ...email, starred: !email.starred } : email
-      )
+      prevEmails.map((email) => {
+        if (email.id === id) {
+          return { ...email, starred: !email.starred };
+        }
+        return email;
+      })
     );
   };
 
   const readEmail = (id: string) => {
-    setEmails((prevEmails) =>
-      prevEmails.map((email) =>
-        email.id === id ? { ...email, unread: !email.unread } : email
-      )
-    );
+    setEmails((prevEmails) => {
+      const target = prevEmails.find((email) => email.id === id);
+      if (!target) return prevEmails;
+
+      const rootId = target.rootId ?? target.id;
+
+      return prevEmails.map((email) => {
+        const isInThread = email.id === rootId || email.rootId === rootId;
+        return isInThread && email.unread ? { ...email, unread: false } : email;
+      });
+    });
   };
 
   const trashEmail = (id: string) => {
@@ -88,12 +108,23 @@ const Main = () => {
     );
   };
 
+  const spamEmail = (id: string) => {
+    setEmails((prevEmails) =>
+      prevEmails.map((email) =>
+        email.id === id ? { ...email, spam: !email.spam } : email
+      )
+    );
+  };
+
   const renderContent = () => {
     if (selectedEmail) {
       return (
         <EmailConversation
+          emails={filteredEmails}
           email={selectedEmail}
           onTrashEmail={trashEmail}
+          onToggleStar={toggleStar}
+          onSpamToggle={spamEmail}
           onBack={handleBack}
         />
       );

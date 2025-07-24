@@ -1,8 +1,5 @@
 import type { Email, EmailsType } from '../../../utils/constants';
-import {
-  countEmailThreadMessages,
-  getLatestMessageInThread,
-} from '../../../utils/utils';
+import { groupEmailsToThreads } from '../../../utils/utils';
 import { MailListItem } from './MailListItem';
 
 type Props = {
@@ -21,7 +18,7 @@ export const GenericMailDisplay = ({
   onToggleStar,
   onReadEmail,
 }: Props) => {
-  const emailsWithLatest = emails.map(getLatestMessageInThread);
+  const groupedEmails = groupEmailsToThreads(emails);
 
   return (
     <div className="mr-[56px] mb-4 flex grow flex-col rounded-2xl bg-white">
@@ -30,7 +27,28 @@ export const GenericMailDisplay = ({
         {emails.length === 0 ? (
           <div className="text-gray-500 px-4 py-8">{emptyText}</div>
         ) : (
-          [...emailsWithLatest] // <-- use emailsWithLatest here
+          groupedEmails
+            .map((thread) => {
+              const latest = thread.reduce((a, b) =>
+                new Date(a.time) > new Date(b.time) ? a : b
+              );
+              const root = thread.find((e) => !e.rootId) ?? thread[0];
+              const senderNames = Array.from(
+                new Set(thread.map((e) => e.senderName))
+              ).join(', ');
+              const isStarred = thread.some((e) => e.starred);
+              const unread = thread.some((e) => e.unread);
+
+              return {
+                ...latest,
+                subject: root.subject,
+                body: latest.body,
+                senderName: senderNames,
+                threadCount: thread.length,
+                starred: isStarred,
+                unread,
+              };
+            })
             .sort(
               (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()
             )
@@ -43,7 +61,7 @@ export const GenericMailDisplay = ({
                   onReadEmail?.(email.id);
                 }}
                 onToggleStar={onToggleStar}
-                countReplies={countEmailThreadMessages(email)}
+                countReplies={email.threadCount}
               />
             ))
         )}
