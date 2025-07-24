@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import type { Email, EmailsType } from '../../../utils/constants';
-import { formatDateTimeWithAgo, getEmailThread } from '../../../utils/utils';
-import { StarButton } from '../sidebar/StarButton';
+import { getEmailThread } from '../../../utils/utils';
+import { EmailActions } from './EmailActions';
+import { renderBody, renderHeader } from './EmailRenders';
 
 type Props = {
   emails: EmailsType;
@@ -26,71 +27,6 @@ export const EmailConversation = ({
     new Set()
   );
 
-  const renderHeader = (msg: Email) => {
-    const isDetailed = selectedEmailIds.has(msg.id) || fullThread.length === 1;
-
-    return (
-      <div className="mb-2 flex flex-col sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <div className="text-sm sm:text-base font-semibold">
-            {isDetailed ? (
-              <>
-                {msg.senderName}{' '}
-                <span className="font-normal text-xs text-gray-500">
-                  &lt;{msg.senderEmail}&gt;
-                </span>
-              </>
-            ) : (
-              msg.senderName
-            )}
-          </div>
-          {isDetailed && (
-            <div className="text-sm text-gray-600 mt-1">
-              to {msg.receiversName.join(', ')}
-            </div>
-          )}
-        </div>
-        <div className="flex items-center text-xs text-gray-500 sm:ml-4 sm:self-center space-x-2">
-          <span>{formatDateTimeWithAgo(msg.time)}</span>
-          <StarButton
-            starred={msg.starred}
-            onToggleStar={() => onToggleStar?.(msg.id)}
-            id={msg.id}
-          />
-        </div>
-      </div>
-    );
-  };
-
-  const renderBody = (msg: Email) => {
-    const isDetailed =
-      selectedEmailIds.has(msg.id) ||
-      fullThread.length === 1 ||
-      msg.id === fullThread[fullThread.length - 1].id;
-
-    return (
-      <div
-        className={`text-sm whitespace-pre-line ${
-          isDetailed ? 'text-gray-800' : 'text-gray-600 cursor-pointer'
-        }`}
-        onClick={() => {
-          setSelectedEmailIds((prev) => {
-            const newSet = new Set(prev);
-            if (newSet.has(msg.id)) {
-              newSet.delete(msg.id);
-            } else {
-              newSet.add(msg.id);
-            }
-            return newSet;
-          });
-        }}>
-        {isDetailed
-          ? msg.body
-          : msg.body.slice(0, 100) + (msg.body.length > 100 ? '...' : '')}
-      </div>
-    );
-  };
-
   return (
     <div className="mr-[56px] p-2 flex grow flex-col rounded-2xl bg-white">
       {onBack && (
@@ -104,77 +40,13 @@ export const EmailConversation = ({
             }}>
             &lt;
           </button>
-
-          {!email.spam && !email.trash && (
-            <>
-              <button
-                aria-label="Mark as spam"
-                className="rounded px-3 py-1 text-sm"
-                onClick={() => {
-                  fullThread.forEach((msg) => onSpamToggle?.(msg.id));
-                  onBack();
-                }}>
-                <img
-                  src="/icons/icon-spam.png"
-                  alt="Spam"
-                />
-              </button>
-
-              <button
-                aria-label="Trash email"
-                className="rounded px-3 py-1 text-sm"
-                onClick={() => {
-                  fullThread.forEach((msg) => onTrashEmail?.(msg.id));
-                  onBack();
-                }}>
-                <img
-                  src="/icons/icon-trash.png"
-                  alt="Trash"
-                />
-              </button>
-            </>
-          )}
-
-          {email.spam && (
-            <>
-              <button
-                aria-label="Not spam"
-                className="rounded px-3 py-1 text-sm hover:bg-gray-200 transition-colors"
-                onClick={() => {
-                  fullThread.forEach((msg) => onSpamToggle?.(msg.id));
-                  onBack();
-                }}>
-                Not Spam
-              </button>
-            </>
-          )}
-
-          {email.trash && (
-            <>
-              <button
-                aria-label="Restore from Trash"
-                className="rounded px-3 py-1 text-sm hover:bg-gray-200 transition-colors"
-                onClick={() => {
-                  fullThread.forEach((msg) => onTrashEmail?.(msg.id));
-                  onBack();
-                }}>
-                Move to Inbox
-              </button>
-
-              <button
-                aria-label="Mark as spam"
-                className="rounded px-3 py-1 text-sm"
-                onClick={() => {
-                  fullThread.forEach((msg) => onSpamToggle?.(msg.id));
-                  onBack();
-                }}>
-                <img
-                  src="/icons/icon-spam.png"
-                  alt="Spam"
-                />
-              </button>
-            </>
-          )}
+          <EmailActions
+            email={email}
+            fullThread={fullThread}
+            onBack={onBack}
+            onSpamToggle={onSpamToggle}
+            onTrashEmail={onTrashEmail}
+          />
         </div>
       )}
 
@@ -197,8 +69,8 @@ export const EmailConversation = ({
           </div>
 
           <div className="flex-1">
-            {renderHeader(msg)}
-            {renderBody(msg)}
+            {renderHeader(msg, selectedEmailIds, fullThread, onToggleStar)}
+            {renderBody(msg, selectedEmailIds, fullThread, setSelectedEmailIds)}
           </div>
         </div>
       ))}
