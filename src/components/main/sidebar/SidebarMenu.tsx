@@ -1,4 +1,4 @@
-import type { ViewType } from '../Main';
+import type { ViewType } from '../../../utils/utils';
 import { SidebarItem } from './SidebarItem';
 
 interface SidebarMenuProps {
