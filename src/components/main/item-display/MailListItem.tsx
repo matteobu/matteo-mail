@@ -29,7 +29,7 @@ export const MailListItem = ({
     <div
       onClick={onClick}
       className={`relative flex h-[40px] cursor-pointer items-center gap-3 border-b border-gray-200 px-4 text-sm hover:z-10 hover:shadow-md ${
-        starred ? 'bg-gray-50' : ''
+        unread ? 'bg-gray-50' : ''
       }`}>
       <StarButton
         starred={starred ?? false}

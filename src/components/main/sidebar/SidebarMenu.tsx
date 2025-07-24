@@ -31,14 +31,12 @@ const SidebarMenu = ({
     <SidebarItem
       iconSrc="/icons/icon-star.png"
       label="Starred"
-      count={counts.starredUnread}
       selected={currentView === 'starred'}
       onClick={() => onViewChange('starred')}
     />
     <SidebarItem
       iconSrc="/icons/icon-all-mail.png"
       label="All Mail"
-      count={counts.unreadNotSpam}
       selected={currentView === 'all-mail'}
       onClick={() => onViewChange('all-mail')}
     />
@@ -52,7 +50,6 @@ const SidebarMenu = ({
     <SidebarItem
       iconSrc="/icons/icon-trash.png"
       label="Trash"
-      count={counts.trashUnread}
       selected={currentView === 'trash'}
       onClick={() => onViewChange('trash')}
     />
