@@ -10,7 +10,7 @@ function filterEmailsByView(emails: EmailsType, view: ViewType): EmailsType {
     case 'starred':
       return emails.filter((e) => e.starred && !e.spam);
     case 'all-mail':
-      return emails.filter((e) => !e.spam);
+      return emails.filter((e) => !e.spam && !e.trash);
     case 'spam':
       return emails.filter((e) => e.spam);
     case 'trash':
