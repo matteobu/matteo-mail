@@ -16,7 +16,7 @@ export const StarButton = ({
       onClick={(e) => {
         e.stopPropagation();
         setIsStarred(!isStarred);
-        onToggleStar?.(id); // Pass action to parent
+        onToggleStar?.(id);
       }}
       className="cursor-pointer rounded p-1 hover:bg-gray-100"
       aria-label={isStarred ? 'Unstar' : 'Star'}>

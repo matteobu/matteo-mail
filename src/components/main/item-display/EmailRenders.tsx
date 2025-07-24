@@ -47,7 +47,7 @@ export const renderBody = (
   msg: Email,
   selectedEmailIds: Set<string>,
   fullThread: Email[],
-  setSelectedEmailIds: React.Dispatch<React.SetStateAction<Set<string>>>,
+  setSelectedEmailIds: React.Dispatch<React.SetStateAction<Set<string>>>
 ) => {
   const isDetailed =
     selectedEmailIds.has(msg.id) ||
