@@ -45,7 +45,9 @@ export const EmailConversation = ({
             )}
           </div>
           {isDetailed && (
-            <div className="text-sm text-gray-600 italic mt-1">to me</div>
+            <div className="text-sm text-gray-600 mt-1">
+              to {msg.receiversName.join(', ')}
+            </div>
           )}
         </div>
         <div className="flex items-center text-xs text-gray-500 sm:ml-4 sm:self-center space-x-2">
