@@ -2,6 +2,10 @@ import type { Email, EmailsType } from './constants';
 
 const FIXED_NOW = new Date('2030-03-14T15:14:00');
 
+/*---------------------------------*/
+/* Date and Time Formatting Utils */
+/*---------------------------------*/
+
 function isSameDay(date1: Date, date2: Date): boolean {
   return (
     date1.getFullYear() === date2.getFullYear() &&
@@ -68,33 +72,9 @@ export function formatDateTimeWithAgo(time: string): string {
   return `${datePart}, ${timePart} ${ago}`;
 }
 
-export const getEmailThread = (
-  allEmails: EmailsType,
-  email: Email
-): Email[] => {
-  const rootId = email.rootId ?? email.id;
-
-  const threadEmails = allEmails.filter(
-    (e) => e.id === rootId || e.rootId === rootId
-  );
-
-  return threadEmails.sort(
-    (a, b) => new Date(a.time).getTime() - new Date(b.time).getTime()
-  );
-};
-
-export function countEmailThreadMessages(
-  email: Email,
-  allEmails: EmailsType
-): number {
-  return allEmails.filter((e) => e.rootId === email.id).length;
-}
-
-export type ThreadRoot = Email & {
-  threadStarred: boolean;
-  threadUnread: boolean;
-  emails: EmailsType;
-};
+/*--------------------------*/
+/* Email Threading Helpers */
+/*--------------------------*/
 
 export function groupEmailsToThreads(emails: EmailsType): Email[][] {
   const threadMap: Record<string, Email[]> = {};
@@ -112,23 +92,55 @@ export function groupEmailsToThreads(emails: EmailsType): Email[][] {
   return Object.values(threadMap);
 }
 
+export const getEmailThread = (
+  allEmails: EmailsType,
+  email: Email
+): Email[] => {
+  const rootId = email.rootId ?? email.id;
+
+  const threadEmails = allEmails.filter(
+    (e) => e.id === rootId || e.rootId === rootId
+  );
+
+  return threadEmails.sort(
+    (a, b) => new Date(a.time).getTime() - new Date(b.time).getTime()
+  );
+};
+
 export function getLatestMessageInThread(
   email: Email,
   allEmails: EmailsType
 ): Email {
   const rootId = email.rootId ?? email.id;
 
-  // Get all emails in the thread: root + its replies
   const threadEmails = allEmails.filter(
     (e) => e.id === rootId || e.rootId === rootId
   );
 
-  if (threadEmails.length === 0) return email; // fallback if nothing is found
+  if (threadEmails.length === 0) return email;
 
-  // Find the latest email by comparing dates
   const latest = threadEmails.reduce((latestSoFar, current) =>
     new Date(current.time) > new Date(latestSoFar.time) ? current : latestSoFar
   );
 
   return latest;
 }
+
+export function countEmailThreadMessages(
+  email: Email,
+  allEmails: EmailsType
+): number {
+  return allEmails.filter((e) => e.rootId === email.id).length;
+}
+
+/*-----------------------------*/
+/* Type Helpers and Extensions */
+/*-----------------------------*/
+
+export type ViewType = 'inbox' | 'starred' | 'all-mail' | 'spam' | 'trash';
+
+export type ThreadRoot = Email & {
+  threadStarred: boolean;
+  threadUnread: boolean;
+  emails: EmailsType;
+};

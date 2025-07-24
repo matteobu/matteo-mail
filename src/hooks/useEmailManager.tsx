@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
-import { groupEmailsToThreads } from '../utils/utils';
+import { groupEmailsToThreads, type ViewType } from '../utils/utils';
 import { MOCKED_EMAILS, type Email, type EmailsType } from '../utils/constants';
-import type { ViewType } from '../components/main/Main';
 
 function filterEmailsByView(emails: EmailsType, view: ViewType): EmailsType {
   switch (view) {

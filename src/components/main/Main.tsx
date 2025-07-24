@@ -5,8 +5,7 @@ import { GenericMailDisplay } from './item-display/GenericMailDisplay';
 import { EmailConversation } from './item-display/EmailConversation';
 import { useEmailManager } from '../../hooks/useEmailManager';
 import type { Email } from '../../utils/constants';
-
-export type ViewType = 'inbox' | 'starred' | 'all-mail' | 'spam' | 'trash';
+import type { ViewType } from '../../utils/utils';
 
 const Main = () => {
   const [currentView, setCurrentView] = useState<ViewType>('inbox');
